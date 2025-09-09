@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pfx.LoginController"
+      alignment="CENTER" spacing="10" style="-fx-padding: 24;">
+  <Label text="Iniciar sesión" style="-fx-font-size: 18;" />
+  <GridPane hgap="8" vgap="8">
+    <columnConstraints>
+      <ColumnConstraints halignment="RIGHT" minWidth="90"/>
+      <ColumnConstraints hgrow="ALWAYS"/>
+    </columnConstraints>
+    <rowConstraints>
+      <RowConstraints minHeight="30"/>
+      <RowConstraints minHeight="30"/>
+    </rowConstraints>
+
+    <Label text="Usuario:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtUsuario" promptText="usuario" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+    <Label text="Contraseña:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <PasswordField fx:id="txtPass" promptText="••••••" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+  </GridPane>
+
+  <HBox spacing="8">
+    <Button text="Entrar" onAction="#entrar" maxWidth="Infinity"/>
+    <Button text="Olvidé mi contraseña" onAction="#recuperarContrasena"/>
+  </HBox>
+
+  <Label fx:id="lblMsg" text="" style="-fx-text-fill: red;"/>
+</VBox>

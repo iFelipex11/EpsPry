@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pfx.RegisterController"
+      spacing="10" style="-fx-padding: 16;">
+  <Label text="Crear cuenta" style="-fx-font-size: 18;" />
+
+  <GridPane hgap="8" vgap="8">
+    <columnConstraints>
+      <ColumnConstraints minWidth="120" halignment="RIGHT"/>
+      <ColumnConstraints hgrow="ALWAYS"/>
+    </columnConstraints>
+
+    <Label text="Usuario:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtUsuario" promptText="usuario" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+    <Label text="Nombre:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtNombre" promptText="Nombre completo" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+    <Label text="Contraseña:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+    <PasswordField fx:id="txtPass" promptText="••••••" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+    <Label text="Rol:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+    <ComboBox fx:id="cmbRol" GridPane.rowIndex="3" GridPane.columnIndex="1" prefWidth="200"/>
+  </GridPane>
+
+  <HBox spacing="8">
+    <Button text="Crear" onAction="#crear"/>
+    <Button text="Cancelar" onAction="#cerrar"/>
+  </HBox>
+
+  <Label fx:id="lblMsg" textFill="red"/>
+</VBox>
+

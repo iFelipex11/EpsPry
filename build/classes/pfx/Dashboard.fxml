@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pfx.DashboardController"
+      spacing="12" style="-fx-padding: 20;">
+  <Label text="Panel principal" style="-fx-font-size: 18;" />
+  <Label fx:id="lblBienvenida" text="." />
+
+  <HBox spacing="8" alignment="CENTER_LEFT">
+    <Label text="Doctor:"/>
+    <ComboBox fx:id="cmbDoctor" prefWidth="260"/>
+    <Label text="Fecha:"/>
+    <DatePicker fx:id="dpFecha"/>
+    <Button text="Cargar" onAction="#cargarAgenda"/>
+    <Button text="Cerrar sesión" onAction="#logout" style="-fx-background-color: #e33; -fx-text-fill: white;"/>
+    <Button text="Nueva cita" onAction="#nuevaCita"/>
+    <Button text="Cambiar estado" onAction="#cambiarEstado"/>
+    <Button text="Historia" onAction="#abrirHistoria"/>
+  </HBox>
+
+  <TableView fx:id="tblAgenda" prefHeight="360">
+    <columns>
+      <TableColumn fx:id="colHora" text="Hora" prefWidth="80"/>
+      <TableColumn fx:id="colPaciente" text="Paciente" prefWidth="220"/>
+      <TableColumn fx:id="colEstado" text="Estado" prefWidth="120"/>
+      <TableColumn fx:id="colObs" text="Observación" prefWidth="260"/>
+    </columns>
+  </TableView>
+
+  <Label fx:id="lblMsg" textFill="red" />
+</VBox>

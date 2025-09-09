@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pfx.HistoriaController"
+      spacing="10" style="-fx-padding: 16;">
+  <Label text="Historia clínica" style="-fx-font-size: 18;" />
+  <HBox spacing="8" alignment="CENTER_LEFT">
+    <Label text="Paciente:"/>
+    <TextField fx:id="txtCodPaciente" promptText="PAC-001" prefWidth="140"/>
+    <Button text="Agregar nota" onAction="#agregarNota" disable="true" fx:id="btnAgregar"/>
+    <Region HBox.hgrow="ALWAYS"/>
+    <Button text="Cerrar" onAction="#cerrar"/>
+  </HBox>
+
+  <Label fx:id="lblPaciente" text="—" />
+  <TableView fx:id="tblNotas" prefHeight="360">
+    <columns>
+      <TableColumn fx:id="colFecha" text="Fecha/Hora" prefWidth="160"/>
+      <TableColumn fx:id="colTexto" text="Texto" prefWidth="520"/>
+    </columns>
+  </TableView>
+
+  <Label fx:id="lblMsg" textFill="red"/>
+</VBox>
+

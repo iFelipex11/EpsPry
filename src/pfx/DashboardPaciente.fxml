@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pfx.DashboardPacienteController"
+      spacing="12" style="-fx-padding: 20;">
+  <Label text="Mi Portal (Paciente)" style="-fx-font-size: 18;"/>
+  <Label fx:id="lblBienvenida" text="."/>
+
+  <TabPane fx:id="tabs" tabClosingPolicy="UNAVAILABLE" prefHeight="480">
+    <tabs>
+      <!-- Mis Citas -->
+      <Tab text="Mis citas">
+        <VBox spacing="8" style="-fx-padding:8;">
+          <HBox spacing="8" alignment="CENTER_LEFT">
+            <Label text="Desde:"/>
+            <DatePicker fx:id="dpFrom"/>
+            <Label text="Hasta:"/>
+            <DatePicker fx:id="dpTo"/>
+            <Button text="Actualizar" onAction="#refrescarCitas"/>
+            <Button text="Cancelar cita" onAction="#cancelarCita"/>
+          </HBox>
+          <TableView fx:id="tblCitas" prefHeight="360">
+            <columns>
+              <TableColumn fx:id="colFecha" text="Fecha" prefWidth="100"/>
+              <TableColumn fx:id="colHora" text="Hora" prefWidth="80"/>
+              <TableColumn fx:id="colDoctor" text="Doctor" prefWidth="240"/>
+              <TableColumn fx:id="colEstado" text="Estado" prefWidth="120"/>
+              <TableColumn fx:id="colObs" text="Observación" prefWidth="260"/>
+            </columns>
+          </TableView>
+        </VBox>
+      </Tab>
+
+      <!-- Nueva Cita -->
+      <Tab text="Nueva cita">
+        <VBox spacing="10" style="-fx-padding:8;">
+          <HBox spacing="8" alignment="CENTER_LEFT">
+            <Label text="Doctor:"/>
+            <ComboBox fx:id="cmbDoctor" prefWidth="300"/>
+          </HBox>
+          <HBox spacing="8" alignment="CENTER_LEFT">
+            <Label text="Fecha:"/><DatePicker fx:id="dpFecha"/>
+            <Label text="Hora (HH:mm):"/><TextField fx:id="txtHora" promptText="10:00" prefWidth="80"/>
+          </HBox>
+          <Label text="Observación (opcional)"/>
+          <TextArea fx:id="txtObs" prefRowCount="3"/>
+          <HBox spacing="8">
+            <Button text="Solicitar" onAction="#solicitarCita"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Limpiar" onAction="#limpiarNueva"/>
+          </HBox>
+        </VBox>
+      </Tab>
+    </tabs>
+  </TabPane>
+
+  <HBox>
+    <Label fx:id="lblMsg" textFill="red" HBox.hgrow="ALWAYS"/>
+    <Region HBox.hgrow="ALWAYS"/>
+    <Button text="Cerrar sesión" onAction="#logout" style="-fx-background-color: #e33; -fx-text-fill: white;"/>
+  </HBox>
+</VBox>
