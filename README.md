@@ -6,8 +6,8 @@ Este proyecto fue hecho con javafx y mysql para gestionar la informacion de una 
 
 ### Principales funciones
 - Registro de usuarios segun su rol
-- inicio de sesion con autenticacion
-- recuperacion de contraseña de manera simple
+- Inicio de sesion con autenticacion
+- Recuperacion de contraseña de manera simple
 
 ### Modulo doctor
 - El doctor tiene una agenda de citas programadas dependiendo del dia
