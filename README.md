@@ -2,9 +2,9 @@
 
 ## Sistema de gestion de citas
 
-Este proyecto fue hecho con javafx y mysql para gestionar la informacion de una clinica, permitiendoa doctores y pacientes interactuar en un sistema centralizado con autenticacion, citas medicas y registro clinico
+Este proyecto fue hecho con javafx y mysql para gestionar la informacion de una clinica, permitiendo a doctores y pacientes interactuar en un sistema centralizado con autenticacion, citas medicas y registro clinico
 
-### Principales funcionesPrincipales funciones
+### Principales funciones
 - Registro de usuarios segun su rol
 - inicio de sesion con autenticacion
 - recuperacion de contraseña de manera simple
