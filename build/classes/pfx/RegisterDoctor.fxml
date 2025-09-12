@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.Separator?>
@@ -11,9 +10,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="TOP_LEFT" prefWidth="520" spacing="12" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pfx.RegisterController">
+<VBox alignment="TOP_LEFT" prefWidth="520" spacing="12" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pfx.RegisterDoctorController">
     <children>
-        <Label style="-fx-font-size:18;" text="Registro (Paciente por defecto)" />
+        <Label style="-fx-font-size:18;" text="Registro (Doctor)" />
 
         <HBox spacing="10">
             <Label text="Rol:" />
@@ -27,13 +26,12 @@
 
         <Separator />
 
-        <!-- Campos específicos Paciente -->
-        <DatePicker fx:id="dpNacimiento" promptText="Fecha de nacimiento" />
-        <TextField fx:id="txtGenero" promptText="Género (F/M/Otro)" />
-        <TextField fx:id="txtTelefono" promptText="Teléfono" />
-        <TextField fx:id="txtDireccion" promptText="Dirección" />
+        <!-- Campos específicos Doctor -->
+        <TextField fx:id="txtEspecialidad" promptText="Especialidad" />
+        <TextField fx:id="txtSede" promptText="Sede" />
+        <TextField fx:id="txtHorario" promptText="Horario (ej. Lun-Vie 8:00-12:00)" />
 
-        <Button maxWidth="Infinity" onAction="#onCrearCuentaPaciente" text="Crear cuenta (Paciente)" />
+        <Button maxWidth="Infinity" onAction="#onCrearCuentaDoctor" text="Crear cuenta (Doctor)" />
       <Button mnemonicParsing="false" text="Volver" onAction="#onVolver"/>
     </children>
     <padding><Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/></padding>

@@ -1,6 +1,6 @@
 package pfx;
 
-import bdpryfinal.PacienteDaoJdbc;
+import bdpryfinal.DoctorDaoJdbc;
 import bdpryfinal.UsuarioDaoJdbc;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,31 +10,29 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.time.LocalDate;
 
-public class RegisterController {
+public class RegisterDoctorController {
 
     @FXML private ComboBox<String> cbRol;
-    @FXML private TextField txtUsername, txtNombre, txtGenero, txtTelefono, txtDireccion;
+    @FXML private TextField txtUsername, txtNombre, txtEspecialidad, txtSede, txtHorario;
     @FXML private PasswordField txtPassword, txtPassword2;
-    @FXML private DatePicker dpNacimiento;
 
     @FXML
     private void initialize() {
         cbRol.getItems().setAll("Paciente", "Doctor");
-        cbRol.getSelectionModel().select("Paciente"); // por defecto Paciente
+        cbRol.getSelectionModel().select("Doctor"); // seleccionado por defecto en esta vista
     }
 
     @FXML
     private void onRoleChanged() {
         String rol = cbRol.getSelectionModel().getSelectedItem();
-        if ("Doctor".equals(rol)) {
-            switchScene((Node) cbRol, "RegisterDoctor.fxml"); // <- ruta corregida
+        if ("Paciente".equals(rol)) {
+            switchScene((Node) cbRol, "Register.fxml"); // <- ruta corregida
         }
     }
 
     @FXML
-    private void onCrearCuentaPaciente() {
+    private void onCrearCuentaDoctor() {
         String username = safe(txtUsername.getText());
         String nombre   = safe(txtNombre.getText());
         String pass1    = txtPassword.getText();
@@ -49,22 +47,20 @@ public class RegisterController {
             return;
         }
 
-        LocalDate fnac = dpNacimiento.getValue();
-        String genero  = safe(txtGenero.getText());
-        String tel     = safe(txtTelefono.getText());
-        String dir     = safe(txtDireccion.getText());
+        String esp  = safe(txtEspecialidad.getText());
+        String sede = safe(txtSede.getText());
+        String hor  = safe(txtHorario.getText());
 
         try {
-            // 1) Crear usuario PACIENTE
+            // 1) Crear usuario DOCTOR
             UsuarioDaoJdbc usuarioDao = new UsuarioDaoJdbc();
-            int usuarioId = usuarioDao.crearUsuario(username, nombre, pass1, "Paciente");
+            int usuarioId = usuarioDao.crearUsuario(username, nombre, pass1, "Doctor");
 
-            // 2) Completar perfil paciente
-            PacienteDaoJdbc pacienteDao = new PacienteDaoJdbc();
-            pacienteDao.completarPerfilPorUsuarioId(usuarioId, fnac, genero, tel, dir);
+            // 2) Completar perfil Doctor
+            DoctorDaoJdbc doctorDao = new DoctorDaoJdbc();
+            doctorDao.completarPerfilPorUsuarioId(usuarioId, esp, sede, hor);
 
-            showAlert(Alert.AlertType.INFORMATION, "Cuenta de Paciente creada con éxito.");
-            // Puedes redirigir a Login o Start:
+            showAlert(Alert.AlertType.INFORMATION, "Cuenta de Doctor creada con éxito.");
             // switchScene((Node) cbRol, "Login.fxml");
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "No se pudo crear la cuenta: " + e.getMessage());

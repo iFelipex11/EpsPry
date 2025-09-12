@@ -26,6 +26,25 @@ public class DoctorDaoJdbc {
     }
   }
 
+  
+  // Completar perfil de Doctor por usuario_id
+public void completarPerfilPorUsuarioId(int usuarioId, String especialidad, String sede, String horario) {
+  final String sql = "UPDATE Doctor SET especialidad=?, sede=?, horario=? WHERE usuario_id=?";
+  try (java.sql.Connection con = Db.get();
+       java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+    ps.setString(1, especialidad);
+    ps.setString(2, sede);
+    ps.setString(3, horario);
+    ps.setInt(4, usuarioId);
+    int rows = ps.executeUpdate();
+    if (rows == 0) throw new IllegalStateException("No existe perfil Doctor para usuarioId=" + usuarioId);
+  } catch (java.sql.SQLException e) {
+    throw new RuntimeException("Error actualizando perfil Doctor (usuarioId=" + usuarioId + ")", e);
+  }
+}
+
+  
+  
   /** Devuelve todos los doctores ordenados por nombre */
   public List<DoctorItem> listarTodos() {
     String sql = "SELECT id, identificacion, nombre, especialidad FROM Doctor ORDER BY nombre";
