@@ -73,7 +73,8 @@ public class RegisterController {
 
     @FXML
     private void onVolver() {
-        switchScene((Node) cbRol, "Start.fxml"); // <- ruta corregida
+            Stage stage = (Stage) cbRol.getScene().getWindow();
+            stage.close();
     }
 
     /* ===== Helpers ===== */
