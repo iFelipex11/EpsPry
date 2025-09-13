@@ -29,12 +29,13 @@
 
         <!-- Campos específicos Paciente -->
         <DatePicker fx:id="dpNacimiento" promptText="Fecha de nacimiento" />
+      <TextField fx:id="txtCorreo" promptText="Correo" />
         <TextField fx:id="txtGenero" promptText="Género (F/M/Otro)" />
         <TextField fx:id="txtTelefono" promptText="Teléfono" />
         <TextField fx:id="txtDireccion" promptText="Dirección" />
 
         <Button maxWidth="Infinity" onAction="#onCrearCuentaPaciente" text="Crear cuenta (Paciente)" />
-      <Button mnemonicParsing="false" text="Volver" onAction="#onVolver"/>
+      <Button mnemonicParsing="false" onAction="#onVolver" text="Volver" />
     </children>
-    <padding><Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/></padding>
+    <padding><Insets bottom="16.0" left="16.0" right="16.0" top="16.0" /></padding>
 </VBox>

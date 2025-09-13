@@ -2,6 +2,23 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/App.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/Dashboard.fxml</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/DashboardController.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/DashboardPaciente.fxml</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/DashboardPacienteController.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/Historia.fxml</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/HistoriaController.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/Login.fxml</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/LoginController.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/Register.fxml</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/RegisterController.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/RegisterDoctor.fxml</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/RegisterDoctorController.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/SessionContext.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/Start.fxml</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/StartController.java</file>
+        </group>
     </open-files>
 </project-private>

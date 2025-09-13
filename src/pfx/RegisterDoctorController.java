@@ -15,6 +15,7 @@ public class RegisterDoctorController {
 
     @FXML private ComboBox<String> cbRol;
     @FXML private TextField txtUsername, txtNombre, txtEspecialidad, txtSede, txtHorario;
+    @FXML private TextField txtCorreo, txtGenero, txtTelefono; // <- agregados
     @FXML private PasswordField txtPassword, txtPassword2;
 
     @FXML
@@ -47,18 +48,21 @@ public class RegisterDoctorController {
             return;
         }
 
-        String esp  = safe(txtEspecialidad.getText());
-        String sede = safe(txtSede.getText());
-        String hor  = safe(txtHorario.getText());
+        String esp   = safe(txtEspecialidad.getText());
+        String sede  = safe(txtSede.getText());
+        String hor   = safe(txtHorario.getText());
+        String correo = safe(txtCorreo.getText());   // <- nuevo
+        String genero = safe(txtGenero.getText());   // <- nuevo
+        String tel    = safe(txtTelefono.getText()); // <- nuevo
 
         try {
             // 1) Crear usuario DOCTOR
             UsuarioDaoJdbc usuarioDao = new UsuarioDaoJdbc();
             int usuarioId = usuarioDao.crearUsuario(username, nombre, pass1, "Doctor");
 
-            // 2) Completar perfil Doctor
+            // 2) Completar perfil Doctor (ahora con correo, género y teléfono)
             DoctorDaoJdbc doctorDao = new DoctorDaoJdbc();
-            doctorDao.completarPerfilPorUsuarioId(usuarioId, esp, sede, hor);
+            doctorDao.completarPerfilPorUsuarioId(usuarioId, esp, sede, hor, correo, genero, tel);
 
             showAlert(Alert.AlertType.INFORMATION, "Cuenta de Doctor creada con éxito.");
             // switchScene((Node) cbRol, "Login.fxml");
@@ -69,8 +73,8 @@ public class RegisterDoctorController {
 
     @FXML
     private void onVolver() {
-            Stage stage = (Stage) cbRol.getScene().getWindow();
-            stage.close();
+        Stage stage = (Stage) cbRol.getScene().getWindow();
+        stage.close();
     }
 
     /* ===== Helpers ===== */

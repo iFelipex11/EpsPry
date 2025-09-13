@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class RegisterController {
 
     @FXML private ComboBox<String> cbRol;
-    @FXML private TextField txtUsername, txtNombre, txtGenero, txtTelefono, txtDireccion;
+    @FXML private TextField txtUsername, txtNombre, txtGenero, txtTelefono, txtDireccion, txtCorreo; // <- agregado txtCorreo
     @FXML private PasswordField txtPassword, txtPassword2;
     @FXML private DatePicker dpNacimiento;
 
@@ -53,15 +53,16 @@ public class RegisterController {
         String genero  = safe(txtGenero.getText());
         String tel     = safe(txtTelefono.getText());
         String dir     = safe(txtDireccion.getText());
+        String correo  = safe(txtCorreo.getText()); // <- leído
 
         try {
             // 1) Crear usuario PACIENTE
             UsuarioDaoJdbc usuarioDao = new UsuarioDaoJdbc();
             int usuarioId = usuarioDao.crearUsuario(username, nombre, pass1, "Paciente");
 
-            // 2) Completar perfil paciente
+            // 2) Completar perfil paciente (ahora con correo)
             PacienteDaoJdbc pacienteDao = new PacienteDaoJdbc();
-            pacienteDao.completarPerfilPorUsuarioId(usuarioId, fnac, genero, tel, dir);
+            pacienteDao.completarPerfilPorUsuarioId(usuarioId, fnac, genero, tel, dir, correo); // <- +correo
 
             showAlert(Alert.AlertType.INFORMATION, "Cuenta de Paciente creada con éxito.");
             // Puedes redirigir a Login o Start:
@@ -73,8 +74,8 @@ public class RegisterController {
 
     @FXML
     private void onVolver() {
-            Stage stage = (Stage) cbRol.getScene().getWindow();
-            stage.close();
+        Stage stage = (Stage) cbRol.getScene().getWindow();
+        stage.close();
     }
 
     /* ===== Helpers ===== */

@@ -28,6 +28,9 @@
 
         <!-- Campos específicos Doctor -->
         <TextField fx:id="txtEspecialidad" promptText="Especialidad" />
+        <TextField fx:id="txtGenero" promptText="Género (F/M/Otro)" />
+        <TextField fx:id="txtTelefono" promptText="Teléfono" />
+        <TextField fx:id="txtCorreo" promptText="Correo" />
         <TextField fx:id="txtSede" promptText="Sede" />
         <TextField fx:id="txtHorario" promptText="Horario (ej. Lun-Vie 8:00-12:00)" />
 

@@ -59,15 +59,23 @@ public class PacienteDaoJdbc {
   // Completar perfil de Paciente por usuario_id
 public void completarPerfilPorUsuarioId(int usuarioId,
                                         java.time.LocalDate fechaNacimiento,
-                                        String genero, String telefono, String direccion) {
-  final String sql = "UPDATE Paciente SET fecha_nacimiento=?, genero=?, telefono=?, direccion=? WHERE usuario_id=?";
+                                        String genero, String telefono,
+                                        String direccion, String correo) {
+  final String sql = "UPDATE Paciente SET fecha_nacimiento=?, genero=?, telefono=?, direccion=?, correo=? WHERE usuario_id=?";
   try (java.sql.Connection con = Db.get();
        java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
-    ps.setDate(1, (fechaNacimiento == null ? null : java.sql.Date.valueOf(fechaNacimiento)));
+
+    if (fechaNacimiento != null) {
+      ps.setDate(1, java.sql.Date.valueOf(fechaNacimiento));
+    } else {
+      ps.setNull(1, java.sql.Types.DATE);
+    }
     ps.setString(2, genero);
     ps.setString(3, telefono);
     ps.setString(4, direccion);
-    ps.setInt(5, usuarioId);
+    ps.setString(5, correo);
+    ps.setInt(6, usuarioId);
+
     int rows = ps.executeUpdate();
     if (rows == 0) throw new IllegalStateException("No existe perfil Paciente para usuarioId=" + usuarioId);
   } catch (java.sql.SQLException e) {
