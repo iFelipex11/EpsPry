@@ -21,6 +21,11 @@
             <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/bdpryfinal/CitaDaoJdbc.java</file>
             <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/DashboardController.java</file>
             <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/Dashboard.fxml</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/App.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/Nota.fxml</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/pfx/NotaController.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/bdpryfinal/NotaDaoJdbc.java</file>
+            <file>file:/D:/Whiterose/Documentos/NetBeansProjects/BdpryFinal/src/bdpryfinal/NotaService.java</file>
         </group>
     </open-files>
 </project-private>
