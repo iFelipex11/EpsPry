@@ -239,11 +239,27 @@ private void abrirNotas() {
   private void nuevaCita() {
     lblMsg.setText("");
     var doc = cmbDoctor.getSelectionModel().getSelectedItem();
-    var fecha = dpFecha.getValue();
-    if (doc == null || fecha == null) {
-      lblMsg.setText("Selecciona doctor y fecha.");
-      return;
-    }
+    if (doc == null) { lblMsg.setText("Selecciona doctor."); return; }
+
+// ========== pedir fecha con DatePicker ==========
+java.time.LocalDate base =
+    (dpFecha != null && dpFecha.getValue() != null) ? dpFecha.getValue() : java.time.LocalDate.now();
+
+Dialog<ButtonType> dlg = new Dialog<>();
+dlg.setTitle("Elegir fecha");
+dlg.setHeaderText("Selecciona el día");
+ButtonType OK = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
+dlg.getDialogPane().getButtonTypes().addAll(OK, ButtonType.CANCEL);
+
+DatePicker dp = new DatePicker(base);
+dp.setMaxWidth(Double.MAX_VALUE);
+dlg.getDialogPane().setContent(dp);
+
+var res = dlg.showAndWait();
+if (res.isEmpty() || res.get() != OK || dp.getValue() == null) return;
+
+var fecha = dp.getValue();          // <--- AQUÍ tienes la fecha elegida
+if (dpFecha != null) dpFecha.setValue(fecha);
 
     // 1) Seleccionar paciente de la lista
     var pacSel = seleccionarPaciente();
