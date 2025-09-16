@@ -21,18 +21,22 @@
         </HBox>
 
         <TextField fx:id="txtUsername" promptText="Username" />
-        <TextField fx:id="txtNombre" promptText="Nombre completo" />
         <PasswordField fx:id="txtPassword" promptText="Password" />
         <PasswordField fx:id="txtPassword2" promptText="Confirmar password" />
 
         <Separator />
 
         <!-- Campos específicos Paciente -->
-        <DatePicker fx:id="dpNacimiento" promptText="Fecha de nacimiento" />
-      <TextField fx:id="txtCorreo" promptText="Correo" />
+        <TextField fx:id="txtCedula" promptText="Cedula" />
+        <TextField fx:id="txtNombre1" promptText="Primer nombre" />
+        <TextField fx:id="txtNombre2" promptText="Segundo nombre" />
+        <TextField fx:id="txtApellido1" promptText="Primer apellido" />
+        <TextField fx:id="txtApellido2" promptText="Segundo apellido" />
+        <TextField fx:id="txtCorreo" promptText="Correo" />  
         <TextField fx:id="txtGenero" promptText="Género (F/M/Otro)" />
         <TextField fx:id="txtTelefono" promptText="Teléfono" />
         <TextField fx:id="txtDireccion" promptText="Dirección" />
+        <DatePicker fx:id="dpNacimiento" promptText="Fecha de nacimiento" />
 
         <Button maxWidth="Infinity" onAction="#onCrearCuentaPaciente" text="Crear cuenta (Paciente)" />
       <Button mnemonicParsing="false" onAction="#onVolver" text="Volver" />

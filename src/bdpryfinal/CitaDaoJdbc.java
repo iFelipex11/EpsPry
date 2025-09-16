@@ -38,11 +38,14 @@ public class CitaDaoJdbc {
     String sql = """
       SELECT c.id,
              DATE_FORMAT(c.hora, '%H:%i') AS hhmm,
-             p.nombre AS paciente,
+             COALESCE(
+               NULLIF(TRIM(CONCAT_WS(' ', p.nombre1, p.nombre2, p.apellido1, p.apellido2)), ''),
+               p.identificacion
+             ) AS paciente,
              c.estado,
              c.observacion
       FROM Cita c
-      JOIN Doctor d ON d.id = c.doctor_id
+      JOIN Doctor d   ON d.id = c.doctor_id
       JOIN Paciente p ON p.id = c.paciente_id
       WHERE d.identificacion = ? AND c.fecha = ?
       ORDER BY c.hora
@@ -149,7 +152,11 @@ public class CitaDaoJdbc {
     StringBuilder sb = new StringBuilder("""
       SELECT c.id, DATE_FORMAT(c.fecha, '%Y-%m-%d') AS f,
              DATE_FORMAT(c.hora, '%H:%i') AS h,
-             d.nombre AS doctor, c.estado, c.observacion
+             COALESCE(
+               NULLIF(TRIM(CONCAT_WS(' ', d.nombre1, d.nombre2, d.apellido1, d.apellido2)), ''),
+               d.identificacion
+             ) AS doctor,
+             c.estado, c.observacion
       FROM Cita c
       JOIN Doctor d ON d.id = c.doctor_id
       WHERE c.paciente_id = ?

@@ -147,27 +147,74 @@ public class DashboardController implements Initializable {
     }
   }
 
+  // ====================== NUEVO: Abrir Historia ======================
   @FXML
   private void abrirHistoria() {
+    lblMsg.setText("");
     var sel = seleccionarPaciente();
     if (sel == null) return; // cancelado
+    abrirVentanaHistoria(sel.identificacion, /*abrirNotas=*/false);
+  }
 
+  // ====================== MODIFICADO: Abrir Notas ======================
+@FXML
+private void abrirNotas() {
+  lblMsg.setText("");
+  var sel = seleccionarPaciente();
+  if (sel == null) return; // cancelado
+
+  try {
+    FXMLLoader loader = new FXMLLoader(App.class.getResource("Nota.fxml"));
+    Parent root = loader.load();
+
+    // pasar el código del paciente al controller (esto a su vez llama abrirHistoria)
+    pfx.NotaController ctrl = loader.getController();
+    ctrl.cargarPaciente(sel.identificacion);
+
+    Stage st = new Stage();
+    st.setTitle("Notas — " + sel.nombre + " [" + sel.identificacion + "]");
+    st.setScene(new Scene(root));
+    st.initOwner(lblMsg.getScene().getWindow());
+    st.initModality(javafx.stage.Modality.WINDOW_MODAL);
+    st.show();
+
+  } catch (java.io.IOException ex) {
+    lblMsg.setStyle("-fx-text-fill:red;");
+    lblMsg.setText("No se pudo abrir Notas: " + ex.getMessage());
+    ex.printStackTrace();
+  }
+}
+
+
+  /**
+   * Abre Historia.fxml, carga el paciente por código y selecciona la pestaña deseada.
+   * Reutiliza el mismo FXML y controller para Historia y Notas.
+   */
+  private void abrirVentanaHistoria(String codPaciente, boolean abrirNotas) {
     try {
+      // Ajusta la ruta si tu FXML está en otro subdirectorio (p. ej., "fxml/Historia.fxml")
       FXMLLoader loader = new FXMLLoader(App.class.getResource("Historia.fxml"));
       Parent root = loader.load();
+
+      // El controller debe ser bdpryfinal.HistoriaController (ajústalo en el FXML)
       HistoriaController ctrl = loader.getController();
+
+      // Precarga del paciente
+      ctrl.cargarPaciente(codPaciente);
+
+      // Pestaña adecuada
+      if (abrirNotas) ctrl.abrirPestanaNotas();
+      else ctrl.abrirPestanaHistoria();
 
       Stage st = new Stage();
       st.initOwner(lblBienvenida.getScene().getWindow());
       st.initModality(Modality.WINDOW_MODAL);
-      st.setTitle("Historia clínica");
+      st.setTitle(abrirNotas ? "Notas de historia" : "Historia clínica");
       st.setScene(new Scene(root));
       st.show();
 
-      // Pasamos el código del paciente seleccionado (identificacion)
-      ctrl.cargarPaciente(sel.identificacion);
     } catch (Exception ex) {
-      lblMsg.setText("No se pudo abrir Historia: " + ex.getMessage());
+      lblMsg.setText("No se pudo abrir la historia: " + ex.getMessage());
       ex.printStackTrace();
     }
   }

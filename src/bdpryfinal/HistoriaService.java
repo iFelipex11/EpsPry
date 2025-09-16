@@ -16,9 +16,10 @@ public class HistoriaService {
   private final PacienteDaoJdbc pacDao = new PacienteDaoJdbc();
   private final HistoriaDaoJdbc histDao = new HistoriaDaoJdbc();
 
-  /** Abre (o crea) la historia por código de paciente. */
+  /** Abre (o crea) la historia por código de paciente y lista sus notas. */
   public HistoriaView abrirPorCodigoPaciente(String codPaciente) {
-    if (codPaciente == null || codPaciente.isBlank()) throw new IllegalArgumentException("Código de paciente requerido");
+    if (codPaciente == null || codPaciente.isBlank())
+      throw new IllegalArgumentException("Código de paciente requerido");
     var p = pacDao.findByCodigo(codPaciente);
     if (p == null) throw new IllegalArgumentException("Paciente no encontrado");
     int hid = histDao.getOrCreateHistoriaId(p.id);
@@ -26,13 +27,28 @@ public class HistoriaService {
     return new HistoriaView(p, hid, notas);
   }
 
-  /** Agrega nota y devuelve la vista actualizada. */
+  /** Compatibilidad: agrega nota pasando solo 'texto' (se guarda como motivo_consulta). */
   public HistoriaView agregarNotaPorCodigo(String codPaciente, String texto) {
-    if (texto == null || texto.isBlank()) throw new IllegalArgumentException("Texto requerido");
+    if (texto == null || texto.isBlank())
+      throw new IllegalArgumentException("Texto requerido");
     var p = pacDao.findByCodigo(codPaciente);
     if (p == null) throw new IllegalArgumentException("Paciente no encontrado");
     int hid = histDao.getOrCreateHistoriaId(p.id);
-    histDao.agregarNota(hid, texto);
+    histDao.agregarNotaSoloTexto(hid, texto);
+    var notas = histDao.listarNotas(hid);
+    return new HistoriaView(p, hid, notas);
+  }
+
+  /** Agrega nota completa (sin 'texto') y devuelve la vista actualizada. */
+  public HistoriaView agregarNotaPorCodigo(String codPaciente,
+                                           String alergias,
+                                           String medicamentos,
+                                           String motivoConsulta,
+                                           String recomendaciones) {
+    var p = pacDao.findByCodigo(codPaciente);
+    if (p == null) throw new IllegalArgumentException("Paciente no encontrado");
+    int hid = histDao.getOrCreateHistoriaId(p.id);
+    histDao.agregarNota(hid, alergias, medicamentos, motivoConsulta, recomendaciones);
     var notas = histDao.listarNotas(hid);
     return new HistoriaView(p, hid, notas);
   }

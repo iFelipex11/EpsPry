@@ -14,61 +14,87 @@ import java.time.LocalDate;
 
 public class RegisterController {
 
+    // --- Campos comunes / navegación ---
     @FXML private ComboBox<String> cbRol;
-    @FXML private TextField txtUsername, txtNombre, txtGenero, txtTelefono, txtDireccion, txtCorreo; // <- agregado txtCorreo
+    @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword, txtPassword2;
+
+    // --- Campos específicos Paciente (coinciden con Register.fxml) ---
+    @FXML private TextField txtCedula;
+    @FXML private TextField txtNombre1;
+    @FXML private TextField txtNombre2;
+    @FXML private TextField txtApellido1;
+    @FXML private TextField txtApellido2;
+    @FXML private TextField txtCorreo;
+    @FXML private TextField txtGenero;
+    @FXML private TextField txtTelefono;
+    @FXML private TextField txtDireccion;
     @FXML private DatePicker dpNacimiento;
 
     @FXML
     private void initialize() {
-        cbRol.getItems().setAll("Paciente", "Doctor");
-        cbRol.getSelectionModel().select("Paciente"); // por defecto Paciente
+        if (cbRol != null) {
+            cbRol.getItems().setAll("Paciente", "Doctor");
+            cbRol.getSelectionModel().select("Paciente");
+        }
     }
 
     @FXML
     private void onRoleChanged() {
         String rol = cbRol.getSelectionModel().getSelectedItem();
         if ("Doctor".equals(rol)) {
-            switchScene((Node) cbRol, "RegisterDoctor.fxml"); // <- ruta corregida
+            switchScene((Node) cbRol, "RegisterDoctor.fxml");
         }
     }
 
     @FXML
     private void onCrearCuentaPaciente() {
+        // --- Validaciones básicas ---
         String username = safe(txtUsername.getText());
-        String nombre   = safe(txtNombre.getText());
-        String pass1    = txtPassword.getText();
-        String pass2    = txtPassword2.getText();
+        String pass1 = safe(txtPassword.getText());
+        String pass2 = safe(txtPassword2.getText());
 
-        if (username.isEmpty() || nombre.isEmpty() || pass1.isEmpty() || pass2.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Completa los campos obligatorios.");
-            return;
-        }
-        if (!pass1.equals(pass2)) {
-            showAlert(Alert.AlertType.WARNING, "Las contraseñas no coinciden.");
-            return;
-        }
-
+        String cedula = safe(txtCedula.getText());
+        String nombre1 = safe(txtNombre1.getText());
+        String nombre2 = safe(txtNombre2.getText());
+        String apellido1 = safe(txtApellido1.getText());
+        String apellido2 = safe(txtApellido2.getText());
+        String correo = safe(txtCorreo.getText());
+        String genero = safe(txtGenero.getText());
+        String telefono = safe(txtTelefono.getText());
+        String direccion = safe(txtDireccion.getText());
         LocalDate fnac = dpNacimiento.getValue();
-        String genero  = safe(txtGenero.getText());
-        String tel     = safe(txtTelefono.getText());
-        String dir     = safe(txtDireccion.getText());
-        String correo  = safe(txtCorreo.getText()); // <- leído
+
+        if (username.isEmpty() || pass1.isEmpty() || pass2.isEmpty()
+                || cedula.isEmpty() || nombre1.isEmpty() || apellido1.isEmpty()
+                || correo.isEmpty()) {
+            warn("Completa los campos obligatorios: usuario, contraseñas, cédula, primer nombre, primer apellido y correo.");
+            return;
+        }
+        if (!pass1.equals(pass2)) { warn("Las contraseñas no coinciden."); return; }
+        if (!isEmail(correo)) { warn("Correo inválido."); return; }
 
         try {
-            // 1) Crear usuario PACIENTE
+            // 1) Crear usuario (sin columna 'nombre' en la tabla)
             UsuarioDaoJdbc usuarioDao = new UsuarioDaoJdbc();
-            int usuarioId = usuarioDao.crearUsuario(username, nombre, pass1, "Paciente");
+            int usuarioId = usuarioDao.crearUsuario(username, pass1, "Paciente");
 
-            // 2) Completar perfil paciente (ahora con correo)
+            // 2) Insert/Upsert del perfil Paciente (convive con trigger)
             PacienteDaoJdbc pacienteDao = new PacienteDaoJdbc();
-            pacienteDao.completarPerfilPorUsuarioId(usuarioId, fnac, genero, tel, dir, correo); // <- +correo
+            pacienteDao.insertarPerfilPaciente(
+                    usuarioId,
+                    cedula,      // identificacion (usamos la misma cédula)
+                    cedula,
+                    nombre1, nombre2, apellido1, apellido2,
+                    correo, telefono, genero, direccion,
+                    fnac
+            );
 
-            showAlert(Alert.AlertType.INFORMATION, "Cuenta de Paciente creada con éxito.");
-            // Puedes redirigir a Login o Start:
+            info("Cuenta de Paciente creada con éxito.");
             // switchScene((Node) cbRol, "Login.fxml");
         } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "No se pudo crear la cuenta: " + e.getMessage());
+            error("No se pudo crear la cuenta: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -78,9 +104,11 @@ public class RegisterController {
         stage.close();
     }
 
-    /* ===== Helpers ===== */
+    /* ================= Helpers ================ */
 
     private String safe(String s) { return s == null ? "" : s.trim(); }
+
+    private boolean isEmail(String s) { return s != null && s.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"); }
 
     private void switchScene(Node anyNode, String fxmlName) {
         try {
@@ -89,9 +117,13 @@ public class RegisterController {
             stage.setScene(scene);
             stage.centerOnScreen();
         } catch (IOException e) {
-            showAlert(Alert.AlertType.ERROR, "Error cargando vista: " + fxmlName + "\n" + e.getMessage());
+            error("Error cargando vista: " + fxmlName + "\n" + e.getMessage());
         }
     }
+
+    private void warn(String msg) { showAlert(Alert.AlertType.WARNING, msg); }
+    private void info(String msg) { showAlert(Alert.AlertType.INFORMATION, msg); }
+    private void error(String msg) { showAlert(Alert.AlertType.ERROR, msg); }
 
     private void showAlert(Alert.AlertType type, String msg) {
         Alert a = new Alert(type, msg, ButtonType.OK);
