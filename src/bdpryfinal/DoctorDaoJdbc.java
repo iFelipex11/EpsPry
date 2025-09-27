@@ -9,35 +9,26 @@ public class DoctorDaoJdbc {
   /** Item ligero para UI (ComboBox / listas) */
   public static final class DoctorItem {
     public final int id;
-    public final String identificacion; // código interno
-    public final String nombre;         // nombre completo armado
+    public final String cedula;   // ← antes 'identificacion'
+    public final String nombre;
     public final String especialidad;
 
-    public DoctorItem(int id, String identificacion, String nombre, String especialidad) {
+    public DoctorItem(int id, String cedula, String nombre, String especialidad) {
       this.id = id;
-      this.identificacion = identificacion;
+      this.cedula = cedula;
       this.nombre = nombre;
       this.especialidad = especialidad;
     }
 
     @Override public String toString() {
       return nombre + (especialidad == null || especialidad.isBlank() ? "" : " (" + especialidad + ")")
-          + " [" + identificacion + "]";
+          + " [" + cedula + "]";
     }
   }
 
   /* ===================== Registro / Perfil ===================== */
 
-  /**
-   * Inserta/actualiza el perfil del doctor.
-   * Columnas reales: identificacion, cedula, nombre1, nombre2, apellido1, apellido2,
-   * especialidad, sede, horario, correo, telefono, genero, usuario_id.
-   *
-   * Usa ON DUPLICATE KEY UPDATE para convivir con el trigger que ya inserta una fila
-   * placeholder con UNIQUE(usuario_id).
-   */
   public void insertarPerfilDoctor(int usuarioId,
-                                   String identificacion,
                                    String cedula,
                                    String nombre1,
                                    String nombre2,
@@ -52,11 +43,10 @@ public class DoctorDaoJdbc {
 
     final String sql =
         "INSERT INTO Doctor (" +
-        "  identificacion, cedula, nombre1, nombre2, apellido1, apellido2, " +
+        "  cedula, nombre1, nombre2, apellido1, apellido2, " +
         "  especialidad, sede, horario, correo, telefono, genero, usuario_id" +
-        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) " +
+        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?) " +
         "ON DUPLICATE KEY UPDATE " +
-        "  identificacion=VALUES(identificacion), " +
         "  cedula=VALUES(cedula), " +
         "  nombre1=VALUES(nombre1), " +
         "  nombre2=VALUES(nombre2), " +
@@ -72,19 +62,18 @@ public class DoctorDaoJdbc {
     try (Connection con = Db.get();
          PreparedStatement ps = con.prepareStatement(sql)) {
 
-      ps.setString(1, nullIfBlank(identificacion));
-      ps.setString(2, nullIfBlank(cedula));         // 🔴 Faltaba en tu versión
-      ps.setString(3, nullIfBlank(nombre1));
-      ps.setString(4, nullIfBlank(nombre2));
-      ps.setString(5, nullIfBlank(apellido1));
-      ps.setString(6, nullIfBlank(apellido2));
-      ps.setString(7, nullIfBlank(especialidad));
-      ps.setString(8, nullIfBlank(sede));
-      ps.setString(9, nullIfBlank(horario));
-      ps.setString(10, nullIfBlank(correo));
-      ps.setString(11, nullIfBlank(telefono));
-      ps.setString(12, nullIfBlank(genero));
-      ps.setInt(13, usuarioId);                     // 👈 asegura setear usuario_id
+      ps.setString(1,  blankToNull(cedula));
+      ps.setString(2,  blankToNull(nombre1));
+      ps.setString(3,  blankToNull(nombre2));
+      ps.setString(4,  blankToNull(apellido1));
+      ps.setString(5,  blankToNull(apellido2));
+      ps.setString(6,  blankToNull(especialidad));
+      ps.setString(7,  blankToNull(sede));
+      ps.setString(8,  blankToNull(horario));
+      ps.setString(9,  blankToNull(correo));
+      ps.setString(10, blankToNull(telefono));
+      ps.setString(11, blankToNull(genero));
+      ps.setInt(12,    usuarioId);
 
       ps.executeUpdate();
 
@@ -93,21 +82,18 @@ public class DoctorDaoJdbc {
     }
   }
 
-  /** Edición posterior del perfil (ajusta los campos que sí permitas editar). */
   public void completarPerfilPorUsuarioId(int usuarioId,
                                           String especialidad, String sede, String horario,
-                                          String correo, String genero, String telefono) {
-    final String sql = "UPDATE Doctor SET especialidad=?, sede=?, horario=?, correo=?, genero=?, telefono=? WHERE usuario_id=?";
+                                          String genero) {
+    final String sql = "UPDATE Doctor SET especialidad=?, sede=?, horario=?, genero=? WHERE usuario_id=?";
     try (Connection con = Db.get();
          PreparedStatement ps = con.prepareStatement(sql)) {
 
-      ps.setString(1, nullIfBlank(especialidad));
-      ps.setString(2, nullIfBlank(sede));
-      ps.setString(3, nullIfBlank(horario));
-      ps.setString(4, nullIfBlank(correo));
-      ps.setString(5, nullIfBlank(genero));
-      ps.setString(6, nullIfBlank(telefono));
-      ps.setInt(7, usuarioId);
+      ps.setString(1, blankToNull(especialidad));
+      ps.setString(2, blankToNull(sede));
+      ps.setString(3, blankToNull(horario));
+      ps.setString(4, blankToNull(genero));
+      ps.setInt(5, usuarioId);
 
       int rows = ps.executeUpdate();
       if (rows == 0) throw new IllegalStateException("No existe perfil Doctor para usuarioId=" + usuarioId);
@@ -120,7 +106,7 @@ public class DoctorDaoJdbc {
 
   /** Devuelve todos los doctores ordenados por nombre completo. */
   public List<DoctorItem> listarTodos() {
-    String sql = "SELECT id, identificacion, " +
+    String sql = "SELECT id, cedula, " +
                  "CONCAT_WS(' ', nombre1, nombre2, apellido1, apellido2) AS nombre_comp, " +
                  "especialidad " +
                  "FROM Doctor " +
@@ -133,7 +119,7 @@ public class DoctorDaoJdbc {
       while (rs.next()) {
         out.add(new DoctorItem(
             rs.getInt("id"),
-            rs.getString("identificacion"),
+            rs.getString("cedula"),
             rs.getString("nombre_comp"),
             rs.getString("especialidad")
         ));
@@ -144,9 +130,7 @@ public class DoctorDaoJdbc {
     }
   }
 
-  /* ===================== Helpers internos ===================== */
-
-  private static String nullIfBlank(String s) {
+  private static String blankToNull(String s) {
     if (s == null) return null;
     String t = s.trim();
     return t.isEmpty() ? null : t;

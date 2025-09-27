@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 
 public class StartController {
 
-  @FXML
+  @FXML //Asociamos el boton abrirlogin con la clase
   private void abrirLogin() {
     try {
       // Obtengo la ventana actual (la que muestra Start.fxml)

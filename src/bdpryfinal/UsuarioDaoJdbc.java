@@ -2,19 +2,14 @@ package bdpryfinal;
 
 import java.sql.*;
 
-/**
- * DAO para Usuario y Sesion, y resolución de vínculos a Paciente/Doctor.
- * - La tabla Usuario NO tiene columna 'nombre'.
- * - El campo 'nombre' del DTO se resuelve con:
- *   Paciente/Doctor -> CONCAT_WS(...) o, si no existe, username.
- */
+
 public class UsuarioDaoJdbc {
 
-  /** DTO de usuario para usar en la app */
+  //Clase anidada user
   public static final class User {
     public final int id;
     public final String username;
-    public final String nombre;  // nombre "mostrable" (paciente/doctor o username)
+    public final String nombre;
     public final String rol;
 
     public User(int id, String username, String nombre, String rol) {
@@ -25,24 +20,23 @@ public class UsuarioDaoJdbc {
     }
   }
 
-  /* ======================= Creación / existencia ======================= */
 
-  /** Crea usuario (tabla Usuario solo tiene username, password, rol). */
+  //Agrega una fila a la tabla username con un usuario nuevo
   public int crearUsuario(String username, String passwordPlano, String rol) {
-    final String check = "SELECT 1 FROM Usuario WHERE username = ?";
-    final String ins   = "INSERT INTO Usuario(username, password, rol) VALUES (?,?,?)";
+    final String check = "SELECT 1 FROM Usuario WHERE username = ?"; //Devolvemos 1 cuando existe un usuario
+    final String ins   = "INSERT INTO Usuario(username, password, rol) VALUES (?,?,?)"; //Insertamos un nuevo usuario
     try (Connection cn = Db.get()) {
       // Unicidad de username
       try (PreparedStatement ps = cn.prepareStatement(check)) {
         ps.setString(1, username);
-        try (ResultSet rs = ps.executeQuery()) {
+        try (ResultSet rs = ps.executeQuery()) { //Hacemos una consulta y pasamos el valor username para saber si existe
           if (rs.next()) throw new IllegalStateException("El usuario ya existe.");
         }
       }
-      // Insert
+      //Creamos un nuevo usuario y obtenemos la clave autogenerada por mysql
       try (PreparedStatement ps = cn.prepareStatement(ins, Statement.RETURN_GENERATED_KEYS)) {
         ps.setString(1, username);
-        ps.setString(2, passwordPlano); // (opcional: aplicar hash antes)
+        ps.setString(2, passwordPlano); //Usamos una password en plano para que sea mas facil obtener su valor
         ps.setString(3, rol);
         ps.executeUpdate();
         try (ResultSet gk = ps.getGeneratedKeys()) {
@@ -55,10 +49,6 @@ public class UsuarioDaoJdbc {
     }
   }
 
-  /** Overload legacy: acepta displayName pero lo ignora (no existe columna en BD). */
-  public int crearUsuario(String username, String displayNameIgnorado, String passwordPlano, String rol) {
-    return crearUsuario(username, passwordPlano, rol);
-  }
 
   public boolean existeUsername(String username) {
     final String sql = "SELECT 1 FROM Usuario WHERE username = ?";
@@ -73,15 +63,9 @@ public class UsuarioDaoJdbc {
     }
   }
 
-  /* ======================= Lectura / login ======================= */
 
-  /**
-   * Busca un usuario por username.
-   * Resuelve 'nombre' con:
-   *   COALESCE(CONCAT_WS(...) de Paciente, CONCAT_WS(...) de Doctor, username)
-   */
-  public User findByUsername(String username) {
-    final String sql =
+  public User EncontrarPorUser(String username) {
+    final String sql = //Hacemos una query para que nos retorne todos los datos de un usuario cuando se encuentre
         "SELECT u.id, u.username, u.rol, " +
         "COALESCE(" +
         "  NULLIF(TRIM(CONCAT_WS(' ', p.nombre1,p.nombre2,p.apellido1,p.apellido2)), '')," +
@@ -95,7 +79,7 @@ public class UsuarioDaoJdbc {
     try (Connection cn = Db.get();
          PreparedStatement ps = cn.prepareStatement(sql)) {
       ps.setString(1, username);
-      try (ResultSet rs = ps.executeQuery()) {
+      try (ResultSet rs = ps.executeQuery()) { 
         if (rs.next()) {
           return new User(
               rs.getInt("id"),
@@ -107,34 +91,34 @@ public class UsuarioDaoJdbc {
         return null;
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Error buscando usuario", e);
+      throw new RuntimeException("Error buscando usuario", e); //Si hay error al establecer la conexion llama a este metodo
     }
   }
 
-  /** Verifica el password (PLANO por ahora, para demo). */
-  public boolean passwordOk(String username, String passwordPlano) {
+  //Verificamos la contraseña de un usuario
+  public boolean VerfPassword(String username, String passwordPlano) {
     final String sql = "SELECT password FROM Usuario WHERE username = ?";
     try (Connection cn = Db.get();
          PreparedStatement ps = cn.prepareStatement(sql)) {
       ps.setString(1, username);
       try (ResultSet rs = ps.executeQuery()) {
-        if (!rs.next()) return false;
-        String passDb = rs.getString("password");
-        return passDb != null && passDb.equals(passwordPlano);
+        if (!rs.next()) return false; // si no hay filas para mostrar entonces retorna flaso sino continua
+        String passDb = rs.getString("password"); //Aca obtenemos la contraseña en plano
+        return passDb != null && passDb.equals(passwordPlano); //En este apartado verificamos que la contraseña no sea nula y que sea igual a la que le pasamos
       }
     } catch (SQLException e) {
       throw new RuntimeException("Error verificando password", e);
     }
   }
 
-  /** Devuelve la contraseña tal como está almacenada (para tu “olvidé mi contraseña”). */
-  public String obtenerPasswordPlano(String username) {
+  //
+  public String obtenerPassword(String username) {
     final String sql = "SELECT password FROM Usuario WHERE username = ?";
     try (Connection cn = Db.get();
          PreparedStatement ps = cn.prepareStatement(sql)) {
       ps.setString(1, username);
-      try (ResultSet rs = ps.executeQuery()) {
-        return rs.next() ? rs.getString(1) : null;
+      try (ResultSet rs = ps.executeQuery()) { //Hacemos la query
+        return rs.next() ? rs.getString(1) : null; //Hacemos un operador ternario, si es true devuelve la contraseña sino devuelve null
       }
     } catch (SQLException e) {
       throw new RuntimeException("Error leyendo contraseña", e);
@@ -143,7 +127,8 @@ public class UsuarioDaoJdbc {
 
   /* ======================= Sesiones ======================= */
 
-  /** Crea una sesión 'Activa' y devuelve su id. */
+  //Abrimos sesion
+  //Revisar a futuro para quitar o modificar
   public int abrirSesion(int usuarioId) {
     final String sql = "INSERT INTO Sesion(usuario_id, estado) VALUES (?, 'Activa')";
     try (Connection cn = Db.get();
@@ -159,7 +144,8 @@ public class UsuarioDaoJdbc {
     }
   }
 
-  /** Marca la sesión como 'Cerrada'. */
+  //Abrimos sesion
+  //Revisar a futuro para quitar o modificar
   public void cerrarSesion(int sesionId) {
     final String sql = "UPDATE Sesion SET estado='Cerrada' WHERE id=?";
     try (Connection cn = Db.get();
@@ -173,7 +159,7 @@ public class UsuarioDaoJdbc {
 
   /* ======================= Resolución de vínculos ======================= */
 
-  /** Devuelve paciente_id por usuario_id, o null si no está enlazado. */
+  // Devuelve paciente_id por usuario_id, o null si no está enlazado
   public Integer pacienteIdPorUsuario(int usuarioId) {
     final String sql = "SELECT id FROM Paciente WHERE usuario_id = ?";
     try (Connection cn = Db.get();
@@ -187,7 +173,7 @@ public class UsuarioDaoJdbc {
     }
   }
 
-  /** Devuelve doctor_id por usuario_id, o null si no está enlazado. */
+  // Devuelve doctor_id por usuario_id, o null si no está enlazado.
   public Integer doctorIdPorUsuario(int usuarioId) {
     final String sql = "SELECT id FROM Doctor WHERE usuario_id = ?";
     try (Connection cn = Db.get();

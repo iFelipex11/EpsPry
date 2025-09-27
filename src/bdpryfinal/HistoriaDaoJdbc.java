@@ -6,8 +6,8 @@ import java.util.List;
 
 public class HistoriaDaoJdbc {
 
-  /** Nota de historia clínica: refleja exactamente Historia_Nota (sin 'texto'). */
-  public static final class Nota {
+  // Nota de historia clínica con clase anidada
+  public static final class NotaHistoria {
     public final int id;
     public final int historiaId;
     public final String alergias;
@@ -15,8 +15,9 @@ public class HistoriaDaoJdbc {
     public final String motivoConsulta;
     public final String recomendaciones;
     public final Timestamp creadaEn;
-
-    public Nota(int id, int historiaId,
+    
+    //Metodo constructor de NotaHistoria
+    public NotaHistoria(int id, int historiaId,
                 String alergias, String medicamentos,
                 String motivoConsulta, String recomendaciones,
                 Timestamp creadaEn) {
@@ -27,23 +28,25 @@ public class HistoriaDaoJdbc {
     }
   }
 
-  /** Devuelve id de historia; si no existe, la crea (útil incluso si hay trigger). */
-  public int getOrCreateHistoriaId(int pacienteId) {
-    final String sel = "SELECT id FROM Historia_Clinica WHERE paciente_id = ?";
-    final String ins = "INSERT INTO Historia_Clinica(paciente_id) VALUES (?)";
+  // Creamos una historia en caso de que no exista, sino la busca
+  public int CrearHistoriaId(int pacienteId) {
+    final String sel = "SELECT id FROM Historia_Clinica WHERE paciente_id = ?"; //Seleccionamos el id de la historia por paciente_id
+    final String ins = "INSERT INTO Historia_Clinica(paciente_id) VALUES (?)"; // Inserta una nueva fila en Historia_Clinica para este paciente; 
+    //solo se ejecuta si el SELECT previo no encontró historia; 
+
     try (Connection cn = Db.get()) {
-      // buscar
+      
       try (PreparedStatement ps = cn.prepareStatement(sel)) {
         ps.setInt(1, pacienteId);
-        try (ResultSet rs = ps.executeQuery()) {
-          if (rs.next()) return rs.getInt(1);
+        try (ResultSet rs = ps.executeQuery()) { //Hacemos la consulta
+          if (rs.next()) return rs.getInt(1); //Retornamos la primera fila
         }
       }
-      // crear
-      try (PreparedStatement ps = cn.prepareStatement(ins, Statement.RETURN_GENERATED_KEYS)) {
+      
+      try (PreparedStatement ps = cn.prepareStatement(ins, Statement.RETURN_GENERATED_KEYS)) { //Creamos una nueva fila en la tabla y creamos una key autoincrementada
         ps.setInt(1, pacienteId);
         ps.executeUpdate();
-        try (ResultSet gk = ps.getGeneratedKeys()) {
+        try (ResultSet gk = ps.getGeneratedKeys()) { //luego se obtiene el id autogenerado con getGeneratedKeys().
           if (gk.next()) return gk.getInt(1);
         }
       }
@@ -53,19 +56,19 @@ public class HistoriaDaoJdbc {
     }
   }
 
-  /** Lista notas (más recientes primero). */
-  public List<Nota> listarNotas(int historiaId) {
+  //Listamos todas las notas
+  public List<NotaHistoria> listarNotas(int historiaId) {
     final String sql =
         "SELECT id, historia_id, alergias, medicamentos, motivo_consulta, recomendaciones, creada_en " +
         "FROM Historia_Nota WHERE historia_id=? " +
         "ORDER BY creada_en DESC, id DESC";
-    List<Nota> out = new ArrayList<>();
+    List<NotaHistoria> Notas = new ArrayList<>(); 
     try (Connection cn = Db.get();
          PreparedStatement ps = cn.prepareStatement(sql)) {
       ps.setInt(1, historiaId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          out.add(new Nota(
+          Notas.add(new NotaHistoria(
               rs.getInt("id"),
               rs.getInt("historia_id"),
               rs.getString("alergias"),
@@ -76,13 +79,13 @@ public class HistoriaDaoJdbc {
           ));
         }
       }
-      return out;
+      return Notas;
     } catch (SQLException e) {
       throw new RuntimeException("Error listando notas", e);
     }
   }
 
-  /** Inserta una nota (sin 'texto'). Devuelve el id generado. */
+  //Agregamos la nota por paciente
   public int agregarNota(int historiaId,
                          String alergias,
                          String medicamentos,
@@ -111,11 +114,6 @@ public class HistoriaDaoJdbc {
     }
   }
 
-  /** Compatibilidad opcional: si alguien aún pasa solo 'texto', lo guardamos como motivo_consulta. */
-  public int agregarNotaSoloTexto(int historiaId, String texto) {
-    String t = nullIfBlank(texto);
-    return agregarNota(historiaId, null, null, t, null);
-  }
 
   /* ===== helpers ===== */
   private static String nullIfBlank(String s) {

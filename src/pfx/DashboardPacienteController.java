@@ -1,6 +1,5 @@
 package pfx;
 
-import bdpryfinal.CitaDaoJdbc;
 import bdpryfinal.CitaService;
 import bdpryfinal.DoctorDaoJdbc;
 import bdpryfinal.AuthService;
@@ -12,7 +11,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.time.LocalDate;
@@ -101,7 +99,8 @@ public class DashboardPacienteController {
     catch (Exception ex) { lblMsg.setText("Hora inválida (usa HH:mm)"); return; }
 
     try {
-      int id = citaSrv.crearPorPaciente(pid, doc.identificacion, fecha, hora, txtObs.getText());
+      // ⬇️ Antes: doc.identificacion — ahora usamos la CÉDULA del doctor
+      int id = citaSrv.crearPorPaciente(pid, doc.cedula, fecha, hora, txtObs.getText());
       lblMsg.setStyle("-fx-text-fill: green;");
       lblMsg.setText("Solicitud enviada (id " + id + "). Queda Pendiente.");
       limpiarNueva();
@@ -122,7 +121,6 @@ public class DashboardPacienteController {
     if (!cmbDoctor.getItems().isEmpty()) cmbDoctor.getSelectionModel().select(0);
     dpFecha.setValue(LocalDate.now());
   }
-
 
   @FXML
   private void logout() {
@@ -163,7 +161,8 @@ public class DashboardPacienteController {
     @Override public String toString(DoctorDaoJdbc.DoctorItem d) {
       if (d == null) return "";
       var esp = (d.especialidad == null || d.especialidad.isBlank()) ? "" : " (" + d.especialidad + ")";
-      return d.nombre + esp + "  [" + d.identificacion + "]";
+      // ⬇️ Antes mostraba [identificacion], ahora mostramos [cedula]
+      return d.nombre + esp + "  [" + d.cedula + "]";
     }
     @Override public DoctorDaoJdbc.DoctorItem fromString(String s) { return null; }
   }

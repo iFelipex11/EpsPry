@@ -9,7 +9,6 @@ import java.util.List;
 /** DAO JDBC para tabla Cita */
 public class CitaDaoJdbc {
 
-  /* ====== DTOs ligeros ====== */
   public static final class AgendaItem {
     public final int id;
     public final String hora;
@@ -33,26 +32,26 @@ public class CitaDaoJdbc {
     }
   }
 
-  /* ====== Médico ====== */
-  public List<AgendaItem> agendaDeDoctor(String codDoctor, LocalDate fecha) {
+  // Agenda del doctor por CÉDULA
+  public List<AgendaItem> agendaDeDoctor(String cedulaDoctor, LocalDate fecha) {
     String sql = """
       SELECT c.id,
              DATE_FORMAT(c.hora, '%H:%i') AS hhmm,
              COALESCE(
                NULLIF(TRIM(CONCAT_WS(' ', p.nombre1, p.nombre2, p.apellido1, p.apellido2)), ''),
-               p.identificacion
+               p.cedula
              ) AS paciente,
              c.estado,
              c.observacion
       FROM Cita c
       JOIN Doctor d   ON d.id = c.doctor_id
       JOIN Paciente p ON p.id = c.paciente_id
-      WHERE d.identificacion = ? AND c.fecha = ?
+      WHERE d.cedula = ? AND c.fecha = ?
       ORDER BY c.hora
       """;
     List<AgendaItem> out = new ArrayList<>();
     try (Connection cn = Db.get(); PreparedStatement ps = cn.prepareStatement(sql)) {
-      ps.setString(1, codDoctor);
+      ps.setString(1, cedulaDoctor);
       ps.setDate(2, Date.valueOf(fecha));
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -91,20 +90,21 @@ public class CitaDaoJdbc {
     }
   }
 
-  public int crearPorCodigos(String codPaciente, String codDoctor, LocalDate fecha, LocalTime hora,
+  // Ahora por CÉDULAS de paciente y doctor
+  public int crearPorCodigos(String cedulaPaciente, String cedulaDoctor, LocalDate fecha, LocalTime hora,
                              String estado, String observacion) {
     String find = """
       SELECT p.id AS pid, d.id AS did
       FROM Paciente p, Doctor d
-      WHERE p.identificacion = ? AND d.identificacion = ?
+      WHERE p.cedula = ? AND d.cedula = ?
       """;
     try (Connection cn = Db.get()) {
       cn.setAutoCommit(false);
       try (PreparedStatement ps = cn.prepareStatement(find)) {
-        ps.setString(1, codPaciente);
-        ps.setString(2, codDoctor);
+        ps.setString(1, cedulaPaciente);
+        ps.setString(2, cedulaDoctor);
         try (ResultSet rs = ps.executeQuery()) {
-          if (!rs.next()) throw new IllegalArgumentException("Paciente o Doctor no encontrados por sus códigos.");
+          if (!rs.next()) throw new IllegalArgumentException("Paciente o Doctor no encontrados por sus cédulas.");
           int pid = rs.getInt("pid");
           int did = rs.getInt("did");
           String ins = "INSERT INTO Cita(paciente_id, doctor_id, fecha, hora, estado, observacion) VALUES (?,?,?,?,?,?)";
@@ -117,9 +117,7 @@ public class CitaDaoJdbc {
             if (observacion == null || observacion.isBlank()) insPs.setNull(6, Types.VARCHAR);
             else insPs.setString(6, observacion);
             insPs.executeUpdate();
-            try (ResultSet gk = insPs.getGeneratedKeys()) {
-              if (gk.next()) { cn.commit(); return gk.getInt(1); }
-            }
+            try (ResultSet gk = insPs.getGeneratedKeys()) { if (gk.next()) { cn.commit(); return gk.getInt(1); } }
             throw new IllegalStateException("No se obtuvo ID generado para la cita");
           }
         }
@@ -145,16 +143,14 @@ public class CitaDaoJdbc {
     }
   }
 
-  /* ====== Paciente ====== */
-
-  /** Lista citas del paciente entre fechas (ambos inclusive). Si from/to son null, no filtra ese extremo. */
+  // Paciente: rango por fecha
   public List<CitaPacItem> citasDePaciente(int pacienteId, LocalDate from, LocalDate to) {
     StringBuilder sb = new StringBuilder("""
       SELECT c.id, DATE_FORMAT(c.fecha, '%Y-%m-%d') AS f,
-             DATE_FORMAT(c.hora, '%H:%i') AS h,
+             DATE_FORMAT(c.hora,  '%H:%i')        AS h,
              COALESCE(
                NULLIF(TRIM(CONCAT_WS(' ', d.nombre1, d.nombre2, d.apellido1, d.apellido2)), ''),
-               d.identificacion
+               d.cedula
              ) AS doctor,
              c.estado, c.observacion
       FROM Cita c
@@ -162,7 +158,7 @@ public class CitaDaoJdbc {
       WHERE c.paciente_id = ?
       """);
     if (from != null) sb.append(" AND c.fecha >= ? ");
-    if (to != null)   sb.append(" AND c.fecha <= ? ");
+    if (to   != null) sb.append(" AND c.fecha <= ? ");
     sb.append(" ORDER BY c.fecha, c.hora ");
 
     List<CitaPacItem> out = new ArrayList<>();
@@ -170,7 +166,7 @@ public class CitaDaoJdbc {
       int i = 1;
       ps.setInt(i++, pacienteId);
       if (from != null) ps.setDate(i++, Date.valueOf(from));
-      if (to != null)   ps.setDate(i++, Date.valueOf(to));
+      if (to   != null) ps.setDate(i++, Date.valueOf(to));
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
           out.add(new CitaPacItem(
@@ -189,15 +185,15 @@ public class CitaDaoJdbc {
     }
   }
 
-  /** Crear cita para paciente en sesión, estado Pendiente, resolviendo doctor por código. */
-  public int crearPorPaciente(int pacienteId, String codDoctor, LocalDate fecha, LocalTime hora, String observacion) {
-    String findDoc = "SELECT id FROM Doctor WHERE identificacion = ?";
+  // Crear cita desde la perspectiva del paciente: doctor por CÉDULA
+  public int crearPorPaciente(int pacienteId, String cedulaDoctor, LocalDate fecha, LocalTime hora, String observacion) {
+    String BDoc = "SELECT id FROM Doctor WHERE cedula = ?";
     try (Connection cn = Db.get()) {
       int doctorId;
-      try (PreparedStatement ps = cn.prepareStatement(findDoc)) {
-        ps.setString(1, codDoctor);
+      try (PreparedStatement ps = cn.prepareStatement(BDoc)) {
+        ps.setString(1, cedulaDoctor);
         try (ResultSet rs = ps.executeQuery()) {
-          if (!rs.next()) throw new IllegalArgumentException("Doctor no encontrado por código");
+          if (!rs.next()) throw new IllegalArgumentException("Doctor no encontrado por cédula");
           doctorId = rs.getInt(1);
         }
       }
@@ -207,7 +203,6 @@ public class CitaDaoJdbc {
     }
   }
 
-  /** Cancelar cita solo si pertenece al paciente. */
   public void cancelarPorPaciente(int citaId, int pacienteId) {
     String sql = "UPDATE Cita SET estado='Cancelada' WHERE id=? AND paciente_id=? AND estado IN ('Pendiente','Confirmada')";
     try (Connection cn = Db.get(); PreparedStatement ps = cn.prepareStatement(sql)) {

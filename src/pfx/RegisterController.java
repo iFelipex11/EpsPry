@@ -75,15 +75,14 @@ public class RegisterController {
         if (!isEmail(correo)) { warn("Correo inválido."); return; }
 
         try {
-            // 1) Crear usuario (sin columna 'nombre' en la tabla)
+            // 1) Crear usuario
             UsuarioDaoJdbc usuarioDao = new UsuarioDaoJdbc();
             int usuarioId = usuarioDao.crearUsuario(username, pass1, "Paciente");
 
-            // 2) Insert/Upsert del perfil Paciente (convive con trigger)
+            // 2) Insert/Upsert del perfil Paciente (firma nueva: SIN 'identificacion')
             PacienteDaoJdbc pacienteDao = new PacienteDaoJdbc();
             pacienteDao.insertarPerfilPaciente(
                     usuarioId,
-                    cedula,      // identificacion (usamos la misma cédula)
                     cedula,
                     nombre1, nombre2, apellido1, apellido2,
                     correo, telefono, genero, direccion,

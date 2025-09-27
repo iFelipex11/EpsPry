@@ -78,16 +78,16 @@ public class RegisterDoctorController {
         if (!isEmail(correo)) { warn("Correo inválido."); return; }
 
         try {
-            // 1) Crear usuario con rol DOCTOR (sin 'nombre' en tabla)
+            // 1) Crear usuario con rol DOCTOR
             UsuarioDaoJdbc usuarioDao = new UsuarioDaoJdbc();
             int usuarioId = usuarioDao.crearUsuario(username, pass1, "Doctor");
 
-            // 2) Upsert del perfil de Doctor (actualiza nombres y extras)
+            // 2) Guardar/actualizar perfil del Doctor (firma nueva: SIN 'identificacion')
             DoctorDaoJdbc doctorDao = new DoctorDaoJdbc();
+            String cedulaAuto = "CED-" + usuarioId; // placeholder; reemplázalo si luego pides cédula real en el form
             doctorDao.insertarPerfilDoctor(
                 usuarioId,
-                "DOC-" + usuarioId,  // identificacion (mantenemos el patrón del trigger)
-                "CED-" + usuarioId,  // cedula     (igual que el trigger)
+                cedulaAuto,                 // <-- solo CÉDULA
                 nombre1, nombre2, apellido1, apellido2,
                 especialidad, sede, horario,
                 correo, telefono, genero

@@ -10,29 +10,21 @@ public class PacienteDaoJdbc {
   /** DTO ligero para mostrar/usar en listas */
   public static final class PacienteItem {
     public final int id;
-    public final String identificacion;
-    public final String nombre; // nombre completo armado
+    public final String cedula;   // ← antes 'identificacion'
+    public final String nombre;   // nombre completo armado
 
-    public PacienteItem(int id, String identificacion, String nombre) {
+    public PacienteItem(int id, String cedula, String nombre) {
       this.id = id;
-      this.identificacion = identificacion;
+      this.cedula = cedula;
       this.nombre = nombre;
     }
 
-    @Override public String toString() { return nombre + " [" + identificacion + "]"; }
+    @Override public String toString() { return nombre + " [" + cedula + "]"; }
   }
 
   /* ===================== Registro / Perfil ===================== */
 
-  /**
-   * Inserta o actualiza el perfil del paciente.
-   * - Si tienes el trigger de autolink activo, evita choque con UNIQUE(usuario_id)
-   *   usando ON DUPLICATE KEY UPDATE (upsert).
-   * Columnas: identificacion, cedula, nombre1, nombre2, apellido1, apellido2, correo,
-   * telefono, genero, direccion, fecha_nacimiento, usuario_id
-   */
   public void insertarPerfilPaciente(int usuarioId,
-                                     String identificacion,
                                      String cedula,
                                      String nombre1,
                                      String nombre2,
@@ -46,11 +38,10 @@ public class PacienteDaoJdbc {
 
     final String sql =
         "INSERT INTO Paciente (" +
-        "  identificacion, cedula, nombre1, nombre2, apellido1, apellido2, " +
+        "  cedula, nombre1, nombre2, apellido1, apellido2, " +
         "  correo, telefono, genero, direccion, fecha_nacimiento, usuario_id" +
-        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?) " +
+        ") VALUES (?,?,?,?,?,?,?,?,?,?,?) " +
         "ON DUPLICATE KEY UPDATE " +
-        "  identificacion=VALUES(identificacion), " +
         "  cedula=VALUES(cedula), " +
         "  nombre1=VALUES(nombre1), " +
         "  nombre2=VALUES(nombre2), " +
@@ -65,23 +56,18 @@ public class PacienteDaoJdbc {
     try (Connection cn = Db.get();
          PreparedStatement ps = cn.prepareStatement(sql)) {
 
-      ps.setString(1, identificacion);
-      ps.setString(2, cedula);
-      ps.setString(3, nombre1);
-      ps.setString(4, nullIfBlank(nombre2));
-      ps.setString(5, apellido1);
-      ps.setString(6, apellido2);
-      ps.setString(7, nullIfBlank(correo));
-      ps.setString(8, nullIfBlank(telefono));
-      ps.setString(9, nullIfBlank(genero));
-      ps.setString(10, nullIfBlank(direccion));
-      if (fechaNacimiento != null)
-        ps.setDate(11, java.sql.Date.valueOf(fechaNacimiento));
-      else
-        ps.setNull(11, Types.DATE);
-
-      // 🔴 FALTABA: el parámetro 12 (usuario_id)
-      ps.setInt(12, usuarioId);
+      ps.setString(1,  blankToNull(cedula));
+      ps.setString(2,  blankToNull(nombre1));
+      ps.setString(3,  blankToNull(nombre2));
+      ps.setString(4,  blankToNull(apellido1));
+      ps.setString(5,  blankToNull(apellido2));
+      ps.setString(6,  blankToNull(correo));
+      ps.setString(7,  blankToNull(telefono));
+      ps.setString(8,  blankToNull(genero));
+      ps.setString(9,  blankToNull(direccion));
+      if (fechaNacimiento != null) ps.setDate(10, Date.valueOf(fechaNacimiento));
+      else                         ps.setNull(10, Types.DATE);
+      ps.setInt(11, usuarioId);
 
       ps.executeUpdate();
 
@@ -90,9 +76,6 @@ public class PacienteDaoJdbc {
     }
   }
 
-  /**
-   * Completa/actualiza campos del perfil por usuario_id (útil para edición).
-   */
   public void completarPerfilPorUsuarioId(int usuarioId,
                                           java.time.LocalDate fechaNacimiento,
                                           String genero, String telefono,
@@ -105,10 +88,10 @@ public class PacienteDaoJdbc {
 
       if (fechaNacimiento != null) ps.setDate(1, Date.valueOf(fechaNacimiento));
       else                         ps.setNull(1, Types.DATE);
-      ps.setString(2, nullIfBlank(genero));
-      ps.setString(3, nullIfBlank(telefono));
-      ps.setString(4, nullIfBlank(direccion));
-      ps.setString(5, nullIfBlank(correo));
+      ps.setString(2, blankToNull(genero));
+      ps.setString(3, blankToNull(telefono));
+      ps.setString(4, blankToNull(direccion));
+      ps.setString(5, blankToNull(correo));
       ps.setInt(6, usuarioId);
 
       int rows = ps.executeUpdate();
@@ -118,46 +101,43 @@ public class PacienteDaoJdbc {
     }
   }
 
-  /* ===================== Consultas utilitarias ===================== */
+  /* ===================== Consultas útiles ===================== */
 
-  /** Busca el ID por código (identificación o cédula). Lanza IllegalArgumentException si no existe. */
-  public static int findIdByCodigo(String codigoPaciente) {
+  /** Busca el ID por “código” de paciente: ahora es su CÉDULA. */
+  public static int EncontrarIdPorCodigo(String codigoPaciente) {
     if (codigoPaciente == null || codigoPaciente.isBlank())
-      throw new IllegalArgumentException("Código de paciente requerido");
-    String sql = "SELECT id FROM Paciente WHERE identificacion = ? OR cedula = ?";
+      throw new IllegalArgumentException("Código de paciente (cédula) requerido");
+    String sql = "SELECT id FROM Paciente WHERE cedula = ?";
     try (Connection cn = Db.get();
          PreparedStatement ps = cn.prepareStatement(sql)) {
-      String cod = codigoPaciente.trim();
-      ps.setString(1, cod);
-      ps.setString(2, cod);
+      ps.setString(1, codigoPaciente.trim());
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) return rs.getInt(1);
       }
       throw new IllegalArgumentException("Paciente no encontrado: " + codigoPaciente);
     } catch (SQLException e) {
-      throw new RuntimeException("Error buscando paciente por código: " + e.getMessage(), e);
+      throw new RuntimeException("Error buscando paciente por cédula: " + e.getMessage(), e);
     }
   }
 
-  /** Devuelve un item por código (identificación o cédula), o null si no existe. */
-  public PacienteItem findByCodigo(String codigoPaciente) {
+  /** Devuelve un item por cédula, o null si no existe. */
+  public PacienteItem EncontrarPorCodigo(String codigoPaciente) {
     String sql =
-        "SELECT id, identificacion, nombre1, nombre2, apellido1, apellido2 " +
-        "FROM Paciente WHERE identificacion = ? OR cedula = ?";
+        "SELECT id, cedula, nombre1, nombre2, apellido1, apellido2 " +
+        "FROM Paciente WHERE cedula = ?";
     try (Connection cn = Db.get();
          PreparedStatement ps = cn.prepareStatement(sql)) {
       String cod = codigoPaciente == null ? "" : codigoPaciente.trim();
       ps.setString(1, cod);
-      ps.setString(2, cod);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          String nombre = joinWithSpaces(
+          String nombre = UnirStrings(
               rs.getString("nombre1"),
               rs.getString("nombre2"),
               rs.getString("apellido1"),
               rs.getString("apellido2")
           );
-          return new PacienteItem(rs.getInt("id"), rs.getString("identificacion"), nombre);
+          return new PacienteItem(rs.getInt("id"), rs.getString("cedula"), nombre);
         }
         return null;
       }
@@ -166,37 +146,35 @@ public class PacienteDaoJdbc {
     }
   }
 
-  /**
-   * Búsqueda por nombre "completo" usando LIKE sobre la concatenación.
-   */
+  /** Búsqueda por nombre “completo” */
   public List<PacienteItem> buscarPorNombre(String filtro) {
-    String sql = "SELECT id, identificacion, " +
+    String sql = "SELECT id, cedula, " +
                  "CONCAT_WS(' ', nombre1, nombre2, apellido1, apellido2) AS nombre_comp " +
                  "FROM Paciente " +
                  "WHERE CONCAT_WS(' ', nombre1, nombre2, apellido1, apellido2) LIKE ? " +
                  "ORDER BY nombre_comp";
-    List<PacienteItem> out = new ArrayList<>();
+    List<PacienteItem> pacientes = new ArrayList<>();
     try (Connection cn = Db.get();
          PreparedStatement ps = cn.prepareStatement(sql)) {
       ps.setString(1, "%" + (filtro == null ? "" : filtro.trim()) + "%");
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          out.add(new PacienteItem(
+          pacientes.add(new PacienteItem(
               rs.getInt("id"),
-              rs.getString("identificacion"),
+              rs.getString("cedula"),
               rs.getString("nombre_comp")
           ));
         }
       }
-      return out;
+      return pacientes;
     } catch (SQLException e) {
       throw new RuntimeException("Error buscando pacientes", e);
     }
   }
 
-  /* ===================== Helpers internos ===================== */
+  /* ===================== Helpers ===================== */
 
-  private static String joinWithSpaces(String... parts) {
+  private static String UnirStrings(String... parts) {
     StringBuilder sb = new StringBuilder();
     for (String p : parts) {
       if (p != null) {
@@ -210,7 +188,7 @@ public class PacienteDaoJdbc {
     return sb.toString();
   }
 
-  private static String nullIfBlank(String s) {
+  private static String blankToNull(String s) {
     if (s == null) return null;
     String t = s.trim();
     return t.isEmpty() ? null : t;

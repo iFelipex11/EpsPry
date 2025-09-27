@@ -74,7 +74,7 @@ public class LoginController {
     }
 
     try {
-      String pass = usuarioDao.obtenerPasswordPlano(username);
+      String pass = usuarioDao.obtenerPassword(username);
       if (pass == null) {
         lblMsg.setText("Usuario no encontrado");
         return;

@@ -22,7 +22,7 @@ public class NotaController {
 
   private final NotaService service = new NotaService();
   private final ObservableList<NotaVM> data = FXCollections.observableArrayList();
-  private String codActual;
+  private String codActual; // ahora guarda la CÉDULA
 
   @FXML
   private void initialize() {
@@ -39,16 +39,16 @@ public class NotaController {
     abrir();
   }
 
-  /** Abre (o crea) la nota del paciente cuyo código está en el TextField. */
+  /** Abre (o crea) la nota del paciente cuya CÉDULA está en el TextField. */
   @FXML
   public void abrir() {
     lblMsg.setText("");
     var cod = txtCodPaciente.getText() == null ? "" : txtCodPaciente.getText().trim();
-    if (cod.isEmpty()) { lblMsg.setText("Ingrese el código del paciente."); return; }
+    if (cod.isEmpty()) { lblMsg.setText("Ingrese la cédula del paciente."); return; }
     try {
-      var v = service.abrirPorCodigoPaciente(cod);
-      codActual = v.paciente.identificacion;
-      lblPaciente.setText(v.paciente.nombre + " [" + v.paciente.identificacion + "]");
+      var v = service.abrirPorCodigoPaciente(cod); // busca por cédula
+      codActual = v.paciente.cedula;               // <-- cedula
+      lblPaciente.setText(v.paciente.nombre + " [" + v.paciente.cedula + "]"); // <-- cedula
       data.setAll(v.notas.stream().map(NotaVM::from).toList());
       btnAgregar.setDisable(false);
       if (data.isEmpty()) lblMsg.setText("(sin notas)");
@@ -71,7 +71,7 @@ public class NotaController {
     var txt = dlg.showAndWait();
     if (txt.isEmpty()) return;
     try {
-      var v = service.agregarNotaPorCodigo(codActual, txt.get().trim());
+      var v = service.agregarNotaPorCodigo(codActual, txt.get().trim()); // usa cédula
       data.setAll(v.notas.stream().map(NotaVM::from).toList());
       lblMsg.setStyle("-fx-text-fill: green;");
       lblMsg.setText("Nota agregada.");

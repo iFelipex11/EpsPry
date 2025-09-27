@@ -3,7 +3,7 @@ package bdpryfinal;
 import java.util.List;
 
 public class NotaService {
-
+    //Clase anidada para crear una nota con su respectivo paciente
   public static final class NotaView {
     public final PacienteDaoJdbc.PacienteItem paciente;
     public final int notaId;
@@ -16,26 +16,30 @@ public class NotaService {
   private final PacienteDaoJdbc pacDao = new PacienteDaoJdbc();
   private final NotaDaoJdbc notaDao = new NotaDaoJdbc();
 
-  /** Abre (o crea) la 'nota' del paciente y lista sus entradas de texto. */
+  //
   public NotaView abrirPorCodigoPaciente(String codPaciente) {
     if (codPaciente == null || codPaciente.isBlank())
       throw new IllegalArgumentException("Código de paciente requerido");
-    var p = pacDao.findByCodigo(codPaciente.trim());
+    // Con var evitamos pasarle el tipo de dato
+    var p = pacDao.EncontrarPorCodigo(codPaciente.trim()); //
     if (p == null) throw new IllegalArgumentException("Paciente no encontrado");
-    int notaId = notaDao.getOrCreateNotaId(p.id);
+    //Creamos la nota
+    int notaId = notaDao.CrearNotaId(p.id);
     var notas = notaDao.listarNotas(notaId);
+    //Creamos un objeto NotaView con el paciente, el idNota y la lista de notas
     return new NotaView(p, notaId, notas);
   }
 
-  /** Agrega una entrada de texto y devuelve la vista actualizada. */
+  //Pasamos el codigo del paciente y un texto
   public NotaView agregarNotaPorCodigo(String codPaciente, String texto) {
     if (texto == null || texto.isBlank())
       throw new IllegalArgumentException("Texto requerido");
-    var p = pacDao.findByCodigo(codPaciente.trim());
+    var p = pacDao.EncontrarPorCodigo(codPaciente.trim());
     if (p == null) throw new IllegalArgumentException("Paciente no encontrado");
-    int notaId = notaDao.getOrCreateNotaId(p.id);
+    int notaId = notaDao.CrearNotaId(p.id);
     notaDao.agregarNota(notaId, texto);
     var notas = notaDao.listarNotas(notaId);
+    //Retornamos un objeto NotaView
     return new NotaView(p, notaId, notas);
   }
 }

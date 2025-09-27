@@ -7,7 +7,7 @@ import java.util.List;
 
 public class SesionDaoJdbc {
 
-  /** Proyección mínima de la sesión. */
+  //Objeto que maneja las sesiones
   public static class Sesion {
     public final int id;
     public final int usuarioId;
@@ -27,7 +27,7 @@ public class SesionDaoJdbc {
     }
   }
 
-  /** Abre una sesión para el usuario y devuelve el id generado. */
+  //Creamos una sesion con el id del usuario
   public int abrirSesion(int usuarioId) {
     final String sql =
         "INSERT INTO Sesion(usuario_id, instante_inicio, estado) VALUES (?, NOW(), 'Activa')";
@@ -44,7 +44,7 @@ public class SesionDaoJdbc {
     }
   }
 
-  /** Marca la sesión como 'Cerrada'. */
+  //Cerramos la sesion por el idsesion
   public void cerrarSesion(int sesionId) {
     final String sql = "UPDATE Sesion SET estado='Cerrada' WHERE id=?";
     try (Connection con = Db.get();
@@ -54,31 +54,5 @@ public class SesionDaoJdbc {
     } catch (SQLException e) {
       throw new RuntimeException("Error cerrando sesión id=" + sesionId, e);
     }
-  }
-
-  /** Devuelve las últimas N sesiones de un usuario. */
-  public List<Sesion> ultimasDelUsuario(int usuarioId, int limit) {
-    final String sql =
-        "SELECT id, usuario_id, instante_inicio, estado " +
-        "FROM Sesion WHERE usuario_id=? ORDER BY instante_inicio DESC LIMIT ?";
-    List<Sesion> out = new ArrayList<>();
-    try (Connection con = Db.get();
-         PreparedStatement ps = con.prepareStatement(sql)) {
-      ps.setInt(1, usuarioId);
-      ps.setInt(2, limit);
-      try (ResultSet rs = ps.executeQuery()) {
-        while (rs.next()) {
-          out.add(new Sesion(
-              rs.getInt("id"),
-              rs.getInt("usuario_id"),
-              rs.getTimestamp("instante_inicio").toLocalDateTime(),
-              rs.getString("estado")
-          ));
-        }
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException("Error listando sesiones de usuarioId=" + usuarioId, e);
-    }
-    return out;
   }
 }

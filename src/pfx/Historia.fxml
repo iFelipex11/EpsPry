@@ -80,8 +80,8 @@
                                 <TableColumn fx:id="colFecha" prefWidth="140" text="Creada" />
                                 <TableColumn fx:id="colTexto" prefWidth="260" text="Motivo" />
                                 <TableColumn fx:id="colAlergias" prefWidth="140" text="Alergias" />
-                                <TableColumn fx:id="colMedic" prefWidth="160" text="Medicamentos" />
                                 <TableColumn fx:id="colRecom" prefWidth="180" text="Recomendaciones" />
+                                <TableColumn fx:id="colMedic" prefWidth="160" text="Medicamentos" />
                             </columns>
                         </TableView>
                     </center>

@@ -28,13 +28,13 @@ public class HistoriaController {
 
     /* ========= TAB 2: Notas ========= */
     @FXML private TextField txtCodigoPacienteNotas;
-    @FXML private TableView<HistoriaDaoJdbc.Nota> tblNotas;
-    @FXML private TableColumn<HistoriaDaoJdbc.Nota, String> colFecha;
-    @FXML private TableColumn<HistoriaDaoJdbc.Nota, String> colTexto;     // mostrará motivo_consulta
-    @FXML private TableColumn<HistoriaDaoJdbc.Nota, String> colMotivo;
-    @FXML private TableColumn<HistoriaDaoJdbc.Nota, String> colAlergias;
-    @FXML private TableColumn<HistoriaDaoJdbc.Nota, String> colMedic;
-    @FXML private TableColumn<HistoriaDaoJdbc.Nota, String> colRecom;
+    @FXML private TableView<HistoriaDaoJdbc.NotaHistoria> tblNotas;
+    @FXML private TableColumn<HistoriaDaoJdbc.NotaHistoria, String> colFecha;
+    @FXML private TableColumn<HistoriaDaoJdbc.NotaHistoria, String> colTexto;     // mostrará motivo_consulta
+    @FXML private TableColumn<HistoriaDaoJdbc.NotaHistoria, String> colMotivo;
+    @FXML private TableColumn<HistoriaDaoJdbc.NotaHistoria, String> colAlergias;
+    @FXML private TableColumn<HistoriaDaoJdbc.NotaHistoria, String> colMedic;
+    @FXML private TableColumn<HistoriaDaoJdbc.NotaHistoria, String> colRecom;
     @FXML private Label lblHistoriaIdNotas;
 
     /* ========= Servicios/estado ========= */
@@ -75,8 +75,8 @@ public class HistoriaController {
         }
     }
 
-    private void setupWrappingColumn(TableColumn<HistoriaDaoJdbc.Nota, String> col,
-                                     java.util.function.Function<HistoriaDaoJdbc.Nota, String> getter) {
+    private void setupWrappingColumn(TableColumn<HistoriaDaoJdbc.NotaHistoria, String> col,
+                                     java.util.function.Function<HistoriaDaoJdbc.NotaHistoria, String> getter) {
         if (col == null) return;
 
         col.setCellValueFactory(cd -> new SimpleStringProperty(safe(getter.apply(cd.getValue()))));
@@ -118,7 +118,7 @@ public class HistoriaController {
             // Sincronizar TAB 2
             if (txtCodigoPacienteNotas != null) {
                 txtCodigoPacienteNotas.setText(
-                    vistaActual.paciente != null ? vistaActual.paciente.identificacion : codigo.trim()
+                    vistaActual.paciente != null ? vistaActual.paciente.cedula : codigo.trim()   // <-- cedula
                 );
             }
             if (lblHistoriaIdNotas != null) setHistoriaIdNotasLabel(vistaActual.historiaId);
@@ -157,7 +157,7 @@ public class HistoriaController {
         final String codigo =
             (txtCodigoPacienteNotas != null && txtCodigoPacienteNotas.getText() != null && !txtCodigoPacienteNotas.getText().isBlank())
                 ? txtCodigoPacienteNotas.getText().trim()
-                : (vistaActual.paciente != null ? vistaActual.paciente.identificacion : null);
+                : (vistaActual.paciente != null ? vistaActual.paciente.cedula : null);         // <-- cedula
 
         if (codigo == null || codigo.isBlank()) {
             warn("Código requerido", "No se encontró código de paciente para refrescar.");

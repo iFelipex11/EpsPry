@@ -4,10 +4,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/** DAO para las notas simples (tablas: Nota y Paciente_Nota). */
 public class NotaDaoJdbc {
 
-  /** DTO: fila de Paciente_Nota */
+  //Clase anidada con nota
   public static final class NotaTxt {
     public final int id;
     public final int notaId;
@@ -18,10 +17,12 @@ public class NotaDaoJdbc {
     }
   }
 
-  /** Devuelve id de Nota; si no existe para el paciente, la crea. */
-  public int getOrCreateNotaId(int pacienteId) {
-    final String sel = "SELECT id FROM Nota WHERE paciente_id=?";
-    final String ins = "INSERT INTO Nota(paciente_id) VALUES(?)";
+  // Creamos una nota en caso de que no exista, sino la busca
+  public int CrearNotaId(int pacienteId) {
+    final String sel = "SELECT id FROM Nota WHERE paciente_id=?"; //Selecionamos el id de nota donde el paciente tenga el id que le pasamos
+    final String ins = "INSERT INTO Nota(paciente_id) VALUES(?)"; // Inserta la fila en Nota para este paciente (una por paciente)
+    //solo se ejecuta si el SELECT previo no encontró registro
+
     try (Connection cn = Db.get()) {
       try (PreparedStatement ps = cn.prepareStatement(sel)) {
         ps.setInt(1, pacienteId);
@@ -29,7 +30,7 @@ public class NotaDaoJdbc {
           if (rs.next()) return rs.getInt(1);
         }
       }
-      try (PreparedStatement ps = cn.prepareStatement(ins, Statement.RETURN_GENERATED_KEYS)) {
+      try (PreparedStatement ps = cn.prepareStatement(ins, Statement.RETURN_GENERATED_KEYS)) { //Insertamos una nueva fila y 
         ps.setInt(1, pacienteId);
         ps.executeUpdate();
         try (ResultSet gk = ps.getGeneratedKeys()) {
@@ -42,19 +43,19 @@ public class NotaDaoJdbc {
     }
   }
 
-  /** Lista notas de texto (más recientes primero). */
+  //Listamos las notas de forma descendente
   public List<NotaTxt> listarNotas(int notaId) {
     final String sql =
         "SELECT id, nota_id, texto, creada_en " +
         "FROM Paciente_Nota WHERE nota_id=? " +
         "ORDER BY creada_en DESC, id DESC";
-    List<NotaTxt> out = new ArrayList<>();
+    List<NotaTxt> Notastxt = new ArrayList<>();
     try (Connection cn = Db.get();
          PreparedStatement ps = cn.prepareStatement(sql)) {
       ps.setInt(1, notaId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          out.add(new NotaTxt(
+          Notastxt.add(new NotaTxt(
               rs.getInt("id"),
               rs.getInt("nota_id"),
               rs.getString("texto"),
@@ -62,19 +63,19 @@ public class NotaDaoJdbc {
           ));
         }
       }
-      return out;
+      return Notastxt;
     } catch (SQLException e) {
       throw new RuntimeException("Error listando notas", e);
     }
   }
 
-  /** Inserta una nueva nota de texto y devuelve su id generado. */
+  //Agregamos una nueva nota
   public int agregarNota(int notaId, String texto) {
-    if (texto == null || texto.isBlank())
+    if (texto == null || texto.isBlank()) //Si el texto esta en blanco o es vacio entonces genera un error
       throw new IllegalArgumentException("El campo 'texto' es obligatorio");
-    final String sql = "INSERT INTO Paciente_Nota(nota_id, texto) VALUES (?,?)";
+    final String sql = "INSERT INTO Paciente_Nota(nota_id, texto) VALUES (?,?)"; //Ahora insertamos una nueva nota con un nuevo id y texto
     try (Connection cn = Db.get();
-         PreparedStatement ps = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+         PreparedStatement ps = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) { //Pasamos el codigo junto con un nuevo key autogenerado creado por la bd
       ps.setInt(1, notaId);
       ps.setString(2, texto.trim());
       ps.executeUpdate();
